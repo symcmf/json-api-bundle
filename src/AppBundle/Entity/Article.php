@@ -3,6 +3,7 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use AppBundle\Entity\Category;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -23,17 +24,6 @@ class Article
      */
     private $id;
 
-
-    /**
-     * Get id
-     *
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
     /**
      * @var string
      *
@@ -52,6 +42,36 @@ class Article
      */
     private $description;
 
+    /**
+     * @ORM\Column(name="created_at", type="datetime")
+     */
+    private $created;
+
+    /**
+     * @ORM\Column(name="updated_at", type="datetime")
+     */
+    private $updated;
+
+    /**
+     * @var Category
+     *
+     * Many Articles have One Category.
+     * @ORM\ManyToOne(targetEntity="Category", inversedBy="articles")
+     * @ORM\JoinColumn(name="category_id", referencedColumnName="id", nullable=false)
+     *
+     * @Assert\NotNull
+     */
+    private $category;
+
+    /**
+     * Get id
+     *
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
     /**
      * @return string
@@ -84,16 +104,6 @@ class Article
     {
         $this->description = $description;
     }
-
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
-    private $created;
-
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
-    private $updated;
 
     /**
      * Get created
@@ -139,6 +149,22 @@ class Article
         $this->updated = $updated;
 
         return $this;
+    }
+
+    /**
+     * @return Category
+     */
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    /**
+     * @param Category $category
+     */
+    public function setCategory($category)
+    {
+        $this->category = $category;
     }
 
     /**
