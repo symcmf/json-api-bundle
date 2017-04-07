@@ -2,7 +2,6 @@
 
 namespace JsonBundle\Category;
 
-use AppBundle\Entity\Article;
 use AppBundle\Entity\Category;
 use Neomerx\JsonApi\Schema\SchemaProvider;
 

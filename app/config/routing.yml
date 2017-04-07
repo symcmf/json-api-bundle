@@ -1,7 +1,3 @@
-json:
-    resource: "@JsonBundle/Resources/config/routing.yml"
-    prefix:   /
-
 article_list:
     path:      /articles
     defaults:  { _controller: AppBundle:Article:getArticles }
