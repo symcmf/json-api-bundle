@@ -48,7 +48,7 @@ class Schema extends SchemaProvider
     {
         /** @var Article $article */
         return [
-            'articles' => [self::DATA => $article->getCategory()],
+            'categories' => [self::DATA => $article->getCategory()],
         ];
     }
 }

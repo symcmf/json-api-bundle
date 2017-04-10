@@ -12,6 +12,11 @@ trait RequestTrait
     private $request;
 
     /**
+     * @var string
+     */
+    private $contentType = 'application/vnd.api+json';
+
+    /**
      * @param Request $request
      */
     public function setRequest(Request $request)
@@ -82,12 +87,58 @@ trait RequestTrait
     }
 
     /**
-     * Return attributes for POST and PUT methods
-     *
      * @return array
      */
-    public function getFormAttributes()
+    private function parseJson()
     {
-        return $this->request->request->all();
+        $data = [];
+
+        if ($this->request->getMethod() == 'POST' ||
+            $this->request->getMethod() == 'PUT') {
+
+            if ($this->request->headers->get('content-type') == $this->contentType) {
+                $data = json_decode($this->request->getContent(), true);
+                // TODO check correct format of request json
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDataSection()
+    {
+        $data = $this->parseJson();
+        return (!empty($data)) ? $data['data'] : [];
+    }
+
+    /**
+     * @return array
+     */
+    public function getDataAttributes()
+    {
+        $data = $this->parseJson();
+
+        if (array_key_exists('attributes', $data['data'])) {
+            return (!empty($data)) ? $data['data']['attributes'] : [];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return array
+     */
+    public function getRelationSection()
+    {
+        $data = $this->parseJson();
+
+        if (array_key_exists('relationships', $data['data'])) {
+            return (!empty($data)) ? $data['data']['relationships'] : [];
+        }
+
+        return [];
     }
 }

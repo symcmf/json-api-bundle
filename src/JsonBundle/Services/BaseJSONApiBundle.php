@@ -3,7 +3,6 @@
 namespace JsonBundle\Services;
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class BaseJSONApiBundle
 {
@@ -38,21 +37,40 @@ class BaseJSONApiBundle
      * @param $class
      * @param $pageAttributes
      *
-     * @return \Doctrine\ORM\QueryBuilder
+     * @return array
      */
     public function getQuery($class, $pageAttributes)
     {
         $offset = ($pageAttributes['number'] - 1) * $pageAttributes['size'];
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb
-            ->select('object')
-            ->from($class, 'object')
-            ->setFirstResult($offset)
-            ->setMaxResults($pageAttributes['size']);
+        $object = $this
+            ->entityManager
+            ->getRepository($class)
+            ->findBy([], [], $pageAttributes['size'], $offset);
 
-        $paginator = new Paginator($qb);
-        $this->totalCount = $paginator->count();
+        return $object;
+    }
 
-        return $qb;
+    /**
+     * @param $id
+     * @param $class
+     *
+     * @return null|object
+     */
+    public function getObject($id, $class)
+    {
+        return $this->entityManager->getRepository($class)->find($id);
+    }
+
+    /**
+     * @param $object
+     *
+     * @return object
+     */
+    public function saveObject($object)
+    {
+        $this->entityManager->persist($object);
+        $this->entityManager->flush();
+
+        return $object;
     }
 }

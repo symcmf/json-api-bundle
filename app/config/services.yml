@@ -11,3 +11,7 @@ services:
     jsonapi.base.service:
         class: JsonBundle\Services\BaseJSONApiBundle
         arguments: ['@doctrine.orm.default_entity_manager']
+
+    jsonapi.hydrator.service:
+        class: JsonBundle\Services\BaseHydrator
+        arguments: ['@doctrine.orm.default_entity_manager']
