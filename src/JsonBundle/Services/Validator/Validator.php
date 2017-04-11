@@ -23,14 +23,16 @@ class Validator extends AbstractValidator
 
 
 //    public function __construct(Request $request)
-    public function __construct()
+    public function __construct($validator)
     {
+        $this->validator = $validator;
+
 //        $this->requestAttributes = $request->getAttributes();
-        $this->requestAttributes = [
-            'title' => 'qweqw',
-            'description' => '',
-        ];
-        $this->validator = Validation::createValidator();
+//        $this->requestAttributes = [
+//            'title' => 'qweqw',
+//            'description' => '',
+//        ];
+//        $this->validator = Validation::createValidator();
 //        $this->entity = $request->getType();
     }
 
@@ -64,30 +66,33 @@ class Validator extends AbstractValidator
 
    public function validate($requestAttributes, $relationAttributes, $type)
    {
-       $this->requestAttributes = $requestAttributes;
+//       $this->requestAttributes = $requestAttributes;
 
 //       $this->requestAttributes = [
 //           'title' => 'qweqw',
 //           'description' => '',
 //       ];
 
-       $this->validator = Validation::createValidator();
+//       $this->validator = Validation::createValidator();
        $this->entity = $type;
 
-       $validator = Validation::createValidatorBuilder()
-           ->enableAnnotationMapping()
-           ->getValidator();
+//       $validator = Validation::createValidatorBuilder()
+//           ->enableAnnotationMapping()
+//           ->getValidator();
 
        $object = new Category();
-       $object->setName('testCategory');
+       $object->setName('test');
 //
-       $errors = $validator->validate($object); die();
+       $errors = $this->validator->validate($object);
 //
-//       if (count($errors) !== 0)
-//       {
-//           var_dump($errors); die();
-//       }
+       if (count($errors) !== 0)
+       {
+           foreach ($errors as $error) {
+                var_dump($error->getMessage());
+           }
+       }
 
+       die();
 
        $errors = [];
 

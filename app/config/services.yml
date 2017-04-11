@@ -18,3 +18,4 @@ services:
 
     jsonapi.validator:
         class: JsonBundle\Services\Validator\Validator
+        arguments: ['@validator']
