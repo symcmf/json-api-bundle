@@ -11,6 +11,7 @@ class Validator extends AbstractValidator
 {
     protected $requestAttributes;
     protected $validator;
+    protected $entity;
 
 //    public function __construct(Request $request)
     public function __construct()
@@ -21,19 +22,32 @@ class Validator extends AbstractValidator
             'description' => '',
         ];
         $this->validator = Validation::createValidator();
+//        $this->entity = $request->getType();
     }
 
-   protected function getAttributeRules()
+    /**
+     * @return array
+     */
+    protected function getValidatorAttributes()
    {
        // TODO: нужно генерить димамически класс
        return (new \JsonBundle\Article\Validators)->getAttributeRules();
    }
 
+    /**
+     * @return array
+     */
+    protected function getHydratorAttributes()
+    {
+        $class = "\\JsonBundle\\$this->entity\\Hydrator";
+        return (new $class)->getAttributeRules();
+    }
+
    public function validate()
    {
        $errors = [];
 
-       foreach ($this->getAttributeRules() as $fieldName => $rule) {
+       foreach ($this->getValidatorAttributes() as $fieldName => $rule) {
            if (array_key_exists($fieldName, $this->requestAttributes)) {
 
                $violations = $this->validator->validate($this->requestAttributes[$fieldName], $rule);
