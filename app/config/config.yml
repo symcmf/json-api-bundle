@@ -2,7 +2,10 @@ imports:
     - { resource: parameters.yml }
     - { resource: security.yml }
     - { resource: services.yml }
+<<<<<<< HEAD
 #    - { resource: "@JsonBundle/Resources/config/services.yml" }
+=======
+>>>>>>> fcbf5250b15b4d67a79fee76fec9b334d17727d3
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # http://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration

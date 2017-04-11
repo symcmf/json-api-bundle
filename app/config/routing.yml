@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #json:
 #    resource: "@JsonBundle/Resources/config/routing.yml"
 #    prefix:   /
@@ -13,4 +14,9 @@ api:
 #article_list:
 #    path:      /api/articles
 #    defaults:  { _controller: AppBundle:Article:getArticles }
+=======
+article_list:
+    path:      /articles
+    defaults:  { _controller: AppBundle:Article:getArticles }
+>>>>>>> fcbf5250b15b4d67a79fee76fec9b334d17727d3
 
