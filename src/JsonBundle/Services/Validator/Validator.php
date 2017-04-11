@@ -1,6 +1,6 @@
 <?php
 
-namespace JsonBundle;
+namespace JsonBundle\Services\Validator;
 
 use Symfony\Component\Validator\Validation;
 use Neomerx\JsonApi\Encoder\Encoder;

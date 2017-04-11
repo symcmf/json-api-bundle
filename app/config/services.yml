@@ -15,3 +15,6 @@ services:
     jsonapi.hydrator.service:
         class: JsonBundle\Services\BaseHydrator
         arguments: ['@doctrine.orm.default_entity_manager']
+
+    jsonapi.validator:
+        class: JsonBundle\Services\Validator\Validator

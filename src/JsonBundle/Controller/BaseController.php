@@ -5,6 +5,7 @@ namespace JsonBundle\Controller;
 use AppBundle\Entity\Category;
 use JsonBundle\Request\RequestTrait;
 use JsonBundle\Services\BaseJSONApiBundle;
+use JsonBundle\Services\Validator\Validator;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Encoder\Parameters\EncodingParameters;
@@ -155,6 +156,11 @@ abstract class BaseController extends Controller
     protected function postEntity(Request $request)
     {
         $this->setRequest($request);
+
+        /** @var Validator $validator */
+        $validator = $this->get('jsonapi.validator');
+
+
 
         $errorEncoder = $this->checkIdField($this->getDataSection());
 
