@@ -2,6 +2,7 @@
 
 namespace JsonBundle\Request;
 
+use ICanBoogie\Inflector;
 use Symfony\Component\HttpFoundation\Request;
 
 trait RequestTrait
@@ -121,6 +122,8 @@ trait RequestTrait
     {
         $data = $this->parseJson();
 
+        // TODO refactoring camelCase to function
+
         if (array_key_exists('attributes', $data['data'])) {
             return (!empty($data)) ? $data['data']['attributes'] : [];
         }
@@ -135,10 +138,31 @@ trait RequestTrait
     {
         $data = $this->parseJson();
 
+
+        // TODO refactoring camelCase to function
+
         if (array_key_exists('relationships', $data['data'])) {
             return (!empty($data)) ? $data['data']['relationships'] : [];
         }
 
         return [];
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        $data = $this->parseJson();
+
+        // TODO refactoring camelCase to function
+
+        if (array_key_exists('type', $data['data'])) {
+
+            $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
+            return $invector->camelize($data['data']['type'], Inflector::UPCASE_FIRST_LETTER);
+        }
+
+        return '';
     }
 }

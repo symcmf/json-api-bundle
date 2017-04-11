@@ -2,6 +2,8 @@
 
 namespace JsonBundle\Services\Validator;
 
+use JsonBundle\Category\Hydrator;
+use JsonBundle\Category\Validators;
 use Symfony\Component\Validator\Validation;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Document\Error;
@@ -9,9 +11,13 @@ use Neomerx\JsonApi\Document\Link;
 
 class Validator extends AbstractValidator
 {
+
     protected $requestAttributes;
+
     protected $validator;
+
     protected $entity;
+
 
 //    public function __construct(Request $request)
     public function __construct()
@@ -25,26 +31,49 @@ class Validator extends AbstractValidator
 //        $this->entity = $request->getType();
     }
 
+
+
     /**
      * @return array
      */
     protected function getValidatorAttributes()
-   {
-       // TODO: нужно генерить димамически класс
-       return (new \JsonBundle\Article\Validators)->getAttributeRules();
-   }
+    {
+        // TODO: нужно генерить димамически класс
+
+        $class = '\\JsonBundle\\' . $this->entity . '\\Validators';
+        $object = (new $class);
+
+        /** @var Validators $object */
+        return $object->getAttributeRules();
+    }
 
     /**
      * @return array
      */
     protected function getHydratorAttributes()
     {
-        $class = "\\JsonBundle\\$this->entity\\Hydrator";
-        return (new $class)->getAttributeRules();
+        $class = '\\JsonBundle\\' . $this->entity . '\\Hydrator';
+        $object = (new $class);
+
+        /** @var Hydrator */
+        return $object->getAttributes();
     }
 
-   public function validate()
+   public function validate($requestAttributes, $relationAttributes, $type)
    {
+       $this->requestAttributes = $requestAttributes;
+
+//       $this->requestAttributes = [
+//           'title' => 'qweqw',
+//           'description' => '',
+//       ];
+
+       $this->validator = Validation::createValidator();
+       $this->entity = $type;
+
+
+
+
        $errors = [];
 
        foreach ($this->getValidatorAttributes() as $fieldName => $rule) {
@@ -63,7 +92,7 @@ class Validator extends AbstractValidator
                            'some-title',
                            $violation->getMessage(),
                            ['source' => 'data'],
-                           ['some'   => 'meta']
+                           ['some' => 'meta']
                        );
                    }
 

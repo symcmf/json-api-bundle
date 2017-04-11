@@ -52,12 +52,12 @@ abstract class BaseHydrator
     /**
      * @return array
      */
-    abstract protected function getAttributes();
+    abstract public function getAttributes();
 
     /**
      * @return array
      */
-    abstract protected function getRelations();
+    abstract public function getRelations();
 
     /**
      * @param $item - one row in data section in section relationships JSON API

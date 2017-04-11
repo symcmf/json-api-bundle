@@ -11,7 +11,7 @@ class Hydrator extends BaseHydrator
     /**
      * @return array
      */
-    protected function getAttributes()
+    public function getAttributes()
     {
         return [
             'name',
@@ -22,7 +22,7 @@ class Hydrator extends BaseHydrator
     /**
      * @return array
      */
-    protected function getRelations()
+    public function getRelations()
     {
         return [
             'articles',

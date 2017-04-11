@@ -160,6 +160,11 @@ abstract class BaseController extends Controller
         /** @var Validator $validator */
         $validator = $this->get('jsonapi.validator');
 
+        $validator->validate(
+            $this->getDataAttributes(),
+            $this->getRelationSection(),
+            $this->getType()
+        );
 
 
         $errorEncoder = $this->checkIdField($this->getDataSection());
