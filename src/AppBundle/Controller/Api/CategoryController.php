@@ -26,6 +26,14 @@ use JsonBundle\Category\Hydrator as CategoryHydrator;
 class CategoryController extends BaseController
 {
     /**
+     * @return CategoryHydrator
+     */
+    protected function getHydrator()
+    {
+        return new CategoryHydrator($this->getDoctrine()->getManager());
+    }
+
+    /**
      *
      * @Route("/api/category", name="post_category")
      *
@@ -35,8 +43,6 @@ class CategoryController extends BaseController
      */
     public function postCategory(Request $request)
     {
-        $this->hydrator = new CategoryHydrator($this->getDoctrine()->getManager());
-
         return $this->postEntity($request);
     }
 
@@ -77,13 +83,14 @@ class CategoryController extends BaseController
      * @Route("/api/categories/{id}", name="put_category")
      * @Method("PUT")
      *
+     * @return Response
      */
     public function putCategory($id, Request $request)
     {
         // TODO sure that it's good idea. Need to fix
         $this->hydrator = new CategoryHydrator($this->getDoctrine()->getManager());
 
-        $this->putEntity($id, $request);
+        return $this->putEntity($id, $request);
     }
 
     /**

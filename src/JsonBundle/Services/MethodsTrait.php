@@ -2,9 +2,9 @@
 
 namespace JsonBundle\Services;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\PersistentCollection;
 use ICanBoogie\Inflector;
-
-// TODO maybe user different files for getter and setter methods
 
 /**
  * Class MethodsTrait
@@ -12,11 +12,6 @@ use ICanBoogie\Inflector;
  */
 trait MethodsTrait
 {
-    /**
-     * @var bool
-     */
-    private $isUpdate = false;
-
     /**
      * @return Inflector
      */
@@ -169,15 +164,37 @@ trait MethodsTrait
     }
 
     /**
+     * @param $current
+     * @param $new
+     *
+     * @return bool
+     */
+    private function isEqual($current, $new)
+    {
+//        var_dump($current, $new);
+
+        if ($current instanceof PersistentCollection) {
+            return $current->contains($new) ? true : false;
+        }
+
+        if ($current instanceof ArrayCollection) {
+            return $current->contains($new) ? true : false;
+        }
+
+        return $current == $new ? true : false;
+    }
+
+    /**
      * @param $object
      * @param $map - array ['title' => 'value']
      * @param array|null $arrayFilter - if set, need to check if field value from map array in filter array
      *
-     * @return object
+     * @return boolean
      */
     protected function setParamsToObject($object, array $map, array $arrayFilter = null)
     {
-        $this->isUpdate = false;
+        $isUpdate = false;
+
         foreach ($map as $field => $value) {
 
             if ($arrayFilter) {
@@ -188,15 +205,14 @@ trait MethodsTrait
 
             $currentValue = $this->callGetterMethods($object, $field);
 
-            // TODO need to fix array situation (Array collection VS simple object)
-            if ($currentValue[$field] == $value) {
+            if ($this->isEqual($currentValue[$field], $value)) {
                 continue;
             }
 
             $this->callSetterMethods($object, $field, $value);
-            $this->isUpdate = true;
+            $isUpdate = true;
         }
 
-        return $object;
+        return $isUpdate;
     }
 }

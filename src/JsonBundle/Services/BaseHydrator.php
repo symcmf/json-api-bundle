@@ -19,6 +19,23 @@ abstract class BaseHydrator
     private $entityManager;
 
     /**
+     * @var boolean
+     */
+    private $isUpdated;
+
+    /**
+     * @param $value
+     */
+    private function setUpdate($value)
+    {
+        if ($this->isUpdated == true) {
+            return;
+        }
+
+        $this->isUpdated = $value;
+    }
+
+    /**
      * BaseHydrator constructor.
      * @param $entityManager
      */
@@ -44,16 +61,16 @@ abstract class BaseHydrator
 
     /**
      * @param $item - one row in data section in section relationships JSON API
-     * @return null|object
+     * @return boolean
      */
     private function addChildEntity($object, $field, $item)
     {
         $class = get_class($this->getRelatedObjects()[$item['type']]);
         $child = $this->entityManager->getRepository($class)->find($item['id']);
 
-        $this->setParamsToObject($object, [$field => $child]);
+        return $this->setParamsToObject($object, [$field => $child]);
 
-        return $object;
+//        return $object;
     }
 
     /**
@@ -80,7 +97,7 @@ abstract class BaseHydrator
      * @param array $requestAttributes - array ['field' => 'value'] from attributes section (JSON Api)
      * @param $object
      *
-     * @return object
+     * @return boolean
      */
     private function setAttributesObject(array $requestAttributes, $object)
     {
@@ -88,7 +105,7 @@ abstract class BaseHydrator
         $objectAttributes = $this->getAttributes();
 
         // set only attributes values
-        $this->setParamsToObject($object, $requestAttributes, $objectAttributes);
+        $this->setUpdate($this->setParamsToObject($object, $requestAttributes, $objectAttributes));
 
         return $object;
     }
@@ -114,11 +131,11 @@ abstract class BaseHydrator
                     if ($isIndexed) {
 
                         foreach ($data as $item) {
-                            $this->addChildEntity($object, $relation, $item);
+                            $this->setUpdate($this->addChildEntity($object, $relation, $item));
                         }
 
                     } else {
-                        $this->addChildEntity($object, $relation, $data);
+                        $this->setUpdate($this->addChildEntity($object, $relation, $data));
                     }
                 }
             }
@@ -131,10 +148,12 @@ abstract class BaseHydrator
      * @param array $requestAttributes
      * @param array $relationAttributes
      *
-     * @return null|object
+     * @return array
      */
     public function updateValues(array $requestAttributes, array $relationAttributes)
     {
+        $this->isUpdate = false;
+
         $class = get_class($this->getNewObject());
 
         $object = $this
@@ -149,8 +168,6 @@ abstract class BaseHydrator
         if (!empty($relationAttributes)) {
             $this->setRelationshipsObject($relationAttributes, $object);
         }
-
-        // TODO return status of update ($this->isUpdated)
 
         return $object;
     }

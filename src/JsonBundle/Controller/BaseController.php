@@ -2,8 +2,8 @@
 
 namespace JsonBundle\Controller;
 
+use AppBundle\Entity\Category;
 use JsonBundle\Request\RequestTrait;
-use JsonBundle\Services\BaseHydrator;
 use JsonBundle\Services\BaseJSONApiBundle;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Encoder\Encoder;
@@ -22,12 +22,6 @@ abstract class BaseController extends Controller
     use RequestTrait;
 
     /**
-     * @var BaseHydrator
-     */
-    protected $hydrator;
-
-
-    /**
      * @return string
      */
     abstract public function getClass();
@@ -38,12 +32,19 @@ abstract class BaseController extends Controller
     abstract protected function getEncoder();
 
     /**
+     * @return object
+     */
+    abstract protected function getHydrator();
+
+    /**
      * @return BaseJSONApiBundle
      */
     protected function getBaseService()
     {
         return $this->get('jsonapi.base.service');
     }
+
+
 
     /**
      * @return EncodingParameters
@@ -162,7 +163,7 @@ abstract class BaseController extends Controller
             return $this->createResponse($errorEncoder, Response::HTTP_FORBIDDEN);
         }
 
-        $object = $this->hydrator->setValues($this->getDataAttributes(), $this->getRelationSection());
+        $object = $this->getHydrator()->setValues($this->getDataAttributes(), $this->getRelationSection());
 
         // TODO uncomment after debug
 //        $this->get('jsonapi.base.service')->saveObject($object);
@@ -181,10 +182,10 @@ abstract class BaseController extends Controller
         $this->setRequest($request);
 
         if (!$this->getBaseService()->getObject($id, $this->getClass())) {
-            $this->createResponse([], Response::HTTP_NOT_FOUND);
+            $this->createResponse($this->viewObject($request, new Category()), Response::HTTP_NOT_FOUND);
         }
 
-        $object = $this->hydrator->updateValues($this->getDataSection(), $this->getRelationSection());
+        $object = $this->getHydrator()->updateValues($this->getDataSection(), $this->getRelationSection());
 
         return $this->createResponse($this->viewObject($request, $object), Response::HTTP_OK);
     }
