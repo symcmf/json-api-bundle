@@ -7,6 +7,8 @@ use AppBundle\Entity\Category;
 use JsonBundle\Validator;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Encoder\EncoderOptions;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use \Proxies\__CG__\AppBundle\Entity\Category as CategoryProxy;
 use \Proxies\__CG__\AppBundle\Entity\Article as ArticleProxy;
@@ -15,6 +17,10 @@ use JsonBundle\Article\Schema as ArticleSchema;
 
 class ArticleController extends Controller
 {
+    /**
+     * @Route("/api/articles", name="get_articles")
+     * @Method("GET")
+     */
     public function getArticlesAction()
     {
         $encoder = Encoder::instance([
