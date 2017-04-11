@@ -7,3 +7,11 @@ services:
     #service_name:
     #    class: AppBundle\Directory\ClassName
     #    arguments: ['@another_service_name', 'plain_value', '%parameter_name%']
+
+    jsonapi.base.service:
+        class: JsonBundle\Services\BaseJSONApiBundle
+        arguments: ['@doctrine.orm.default_entity_manager']
+
+    jsonapi.hydrator.service:
+        class: JsonBundle\Services\BaseHydrator
+        arguments: ['@doctrine.orm.default_entity_manager']

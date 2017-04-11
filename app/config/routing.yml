@@ -1,8 +1,16 @@
-json:
-    resource: "@JsonBundle/Resources/config/routing.yml"
-    prefix:   /
+#json:
+#    resource: "@JsonBundle/Resources/config/routing.yml"
+#    prefix:   /
 
-article_list:
-    path:      /articles
-    defaults:  { _controller: AppBundle:Article:getArticles }
+app:
+    resource: '@AppBundle/Controller/'
+    type: annotation
+
+api:
+    resource: '@AppBundle/Controller/Api'
+    type: annotation
+
+#article_list:
+#    path:      /api/articles
+#    defaults:  { _controller: AppBundle:Article:getArticles }
 
