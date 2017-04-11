@@ -103,6 +103,10 @@ abstract class BaseController extends Controller
     {
         $this->setRequest($request);
 
+        /** @var Validator $validator */
+        $validator = $this->get('jsonapi.validator');
+        $validator->validate($this->getDataAttributes(), $this->getRelationSection(),$this->getType());
+
         return $this
             ->get('jsonapi.base.service')
             ->getQuery($this->getClass(), $this->getPaginationAttributes());

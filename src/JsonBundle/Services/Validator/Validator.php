@@ -2,12 +2,15 @@
 
 namespace JsonBundle\Services\Validator;
 
+use AppBundle\Entity\Category;
 use JsonBundle\Category\Hydrator;
 use JsonBundle\Category\Validators;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Validation;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Document\Link;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 class Validator extends AbstractValidator
 {
@@ -40,8 +43,8 @@ class Validator extends AbstractValidator
     {
         // TODO: нужно генерить димамически класс
 
-        $class = '\\JsonBundle\\' . $this->entity . '\\Validators';
-        $object = (new $class);
+        $class = 'JsonBundle\\' . $this->entity . '\\Validators';
+        $object = new $class;
 
         /** @var Validators $object */
         return $object->getAttributeRules();
@@ -52,10 +55,10 @@ class Validator extends AbstractValidator
      */
     protected function getHydratorAttributes()
     {
-        $class = '\\JsonBundle\\' . $this->entity . '\\Hydrator';
-        $object = (new $class);
+        $class = 'JsonBundle\\' . $this->entity . '\\Hydrator';
+        $object = new $class;
 
-        /** @var Hydrator */
+        /** @var Hydrator $object */
         return $object->getAttributes();
     }
 
@@ -71,7 +74,19 @@ class Validator extends AbstractValidator
        $this->validator = Validation::createValidator();
        $this->entity = $type;
 
+       $validator = Validation::createValidatorBuilder()
+           ->enableAnnotationMapping()
+           ->getValidator();
 
+       $object = new Category();
+       $object->setName('testCategory');
+//
+       $errors = $validator->validate($object); die();
+//
+//       if (count($errors) !== 0)
+//       {
+//           var_dump($errors); die();
+//       }
 
 
        $errors = [];
@@ -100,7 +115,7 @@ class Validator extends AbstractValidator
            }
        }
 
-//       return Encoder::instance()->encodeErrors($errors);
-       dump(Encoder::instance()->encodeErrors($errors));
+       return Encoder::instance()->encodeErrors($errors);
+//       dump(Encoder::instance()->encodeErrors($errors));
    }
 }

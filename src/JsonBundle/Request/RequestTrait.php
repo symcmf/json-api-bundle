@@ -160,7 +160,7 @@ trait RequestTrait
         if (array_key_exists('type', $data['data'])) {
 
             $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
-            return $invector->camelize($data['data']['type'], Inflector::UPCASE_FIRST_LETTER);
+            return $invector->singularize($invector->camelize($data['data']['type'], Inflector::UPCASE_FIRST_LETTER));
         }
 
         return '';
