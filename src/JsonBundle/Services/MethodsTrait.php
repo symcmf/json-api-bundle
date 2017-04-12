@@ -189,7 +189,7 @@ trait MethodsTrait
      *
      * @return boolean
      */
-    protected function setParamsToObject($object, array $map, array $arrayFilter = null)
+    public function setParamsToObject($object, array $map, array $arrayFilter = null)
     {
         $isUpdate = false;
 

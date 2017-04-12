@@ -2,125 +2,97 @@
 
 namespace JsonBundle\Services\Validator;
 
-use AppBundle\Entity\Category;
+use Symfony\Component\Validator\Validator\RecursiveValidator;
+use Symfony\Component\Validator\ConstraintViolation;
+use Doctrine\ORM\EntityManager;
 use JsonBundle\Category\Hydrator;
-use JsonBundle\Category\Validators;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Validation;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Document\Link;
-use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 class Validator extends AbstractValidator
 {
+    const ENTITY_NAMESPACE = 'AppBundle\Entity\\';
 
     protected $requestAttributes;
 
     protected $validator;
 
-    protected $entity;
+    protected $entityManager;
 
-
-//    public function __construct(Request $request)
-    public function __construct($validator)
+    /**
+     * Validator constructor.
+     * @param RecursiveValidator $validator
+     * @param EntityManager $entityManager
+     */
+    public function __construct($validator, $entityManager)
     {
         $this->validator = $validator;
-
-//        $this->requestAttributes = $request->getAttributes();
-//        $this->requestAttributes = [
-//            'title' => 'qweqw',
-//            'description' => '',
-//        ];
-//        $this->validator = Validation::createValidator();
-//        $this->entity = $request->getType();
-    }
-
-
-
-    /**
-     * @return array
-     */
-    protected function getValidatorAttributes()
-    {
-        // TODO: нужно генерить димамически класс
-
-        $class = 'JsonBundle\\' . $this->entity . '\\Validators';
-        $object = new $class;
-
-        /** @var Validators $object */
-        return $object->getAttributeRules();
+        $this->entityManager = $entityManager;
     }
 
     /**
-     * @return array
+     * @param string $className
+     * @return object
      */
-    protected function getHydratorAttributes()
+    protected function getEntity($className)
     {
-        $class = 'JsonBundle\\' . $this->entity . '\\Hydrator';
-        $object = new $class;
+        $class = Validator::ENTITY_NAMESPACE . $className;
 
-        /** @var Hydrator $object */
-        return $object->getAttributes();
+        return new $class;
     }
 
-   public function validate($requestAttributes, $relationAttributes, $type)
-   {
-//       $this->requestAttributes = $requestAttributes;
+    /**
+     * @param string $type
+     * @return object
+     */
+    protected function getHydrator($type)
+    {
+        $class = 'JsonBundle\\' . $type . '\\Hydrator';
 
-//       $this->requestAttributes = [
-//           'title' => 'qweqw',
-//           'description' => '',
-//       ];
+        return new $class($this->entityManager);
+    }
 
-//       $this->validator = Validation::createValidator();
-       $this->entity = $type;
+    /**
+     * @param array $requestAttributes
+     * @param array $relationAttributes
+     * @param string $type
+     * @return bool|string
+     */
+     public function validate($requestAttributes, $relationAttributes, $type)
+    {
+        /** @var Hydrator $hydrator */
+        $hydrator = $this->getHydrator($type);
 
-//       $validator = Validation::createValidatorBuilder()
-//           ->enableAnnotationMapping()
-//           ->getValidator();
+        $object = $this->getEntity($type);
 
-       $object = new Category();
-       $object->setName('test');
-//
-       $errors = $this->validator->validate($object);
-//
-       if (count($errors) !== 0)
-       {
-           foreach ($errors as $error) {
-                var_dump($error->getMessage());
-           }
-       }
+        foreach ($hydrator->getAttributes() as $fieldName) {
+            if (array_key_exists($fieldName, $requestAttributes)) {
 
-       die();
+                /** @var Hydrator $hydrator */
+                $hydrator->setParamsToObject($object, $requestAttributes, $hydrator->getAttributes());
+            }
+        }
+        $violations = $this->validator->validate($object);
 
-       $errors = [];
+        $errors = [];
 
-       foreach ($this->getValidatorAttributes() as $fieldName => $rule) {
-           if (array_key_exists($fieldName, $this->requestAttributes)) {
+        if (count($violations) !== 0) {
+            /** @var ConstraintViolation $violation*/
+            foreach ($violations as $violation) {
+                $errors[] = new Error(
+                    'some-id',
+                    new Link('about-link'),
+                    'some-status',
+                    'some-code',
+                    'some-title',
+                    $violation->getMessage(),
+                    ['source' => 'data'],
+                    ['some' => 'meta']
+                );
+            }
+        }
 
-               $violations = $this->validator->validate($this->requestAttributes[$fieldName], $rule);
-
-               if (count($violations) !== 0) {
-
-                   foreach ($violations as $violation) {
-                       $errors[] = new Error(
-                           'some-id',
-                           new Link('about-link'),
-                           'some-status',
-                           'some-code',
-                           'some-title',
-                           $violation->getMessage(),
-                           ['source' => 'data'],
-                           ['some' => 'meta']
-                       );
-                   }
-
-               }
-           }
-       }
-
-       return Encoder::instance()->encodeErrors($errors);
-//       dump(Encoder::instance()->encodeErrors($errors));
-   }
+        return ($violations) ? Encoder::instance()->encodeErrors($errors) : true;
+    }
 }
