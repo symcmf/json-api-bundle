@@ -19,9 +19,6 @@ class Validators
             'name' => [
                 new Length(['min' => 10]),
                 new NotBlank(),
-//                new UniqueEntity([
-//                    'fields'  => 'name',
-//                ]),
 
             ],
             'description' => [
