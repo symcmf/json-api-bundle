@@ -78,13 +78,20 @@ class Validator extends AbstractValidator
 
         $errors = [];
 
-
+        print_r($relationAttributes['data']);die();
 
         foreach ($relationAttributes as $type => $data) {
             $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
             /** @var Hydrator $hydrator */
             $hydrator = $this->getHydrator($invector->singularize($invector->camelize($type, Inflector::UPCASE_FIRST_LETTER)));
-            var_dump($hydrator);die();
+//            var_dump($hydrator);die();
+            foreach ($hydrator->getAttributes() as $fieldName) {
+                if (array_key_exists($fieldName, $requestAttributes)) {
+
+                    /** @var Hydrator $hydrator */
+                    $hydrator->setParamsToObject($object, $requestAttributes, $hydrator->getAttributes());
+                }
+            }
         }
 
         if (count($violations) !== 0) {
@@ -102,6 +109,6 @@ class Validator extends AbstractValidator
             }
         }
 //        var_dump(Encoder::instance()->encodeErrors($errors));die();
-        return ($violations) ? Encoder::instance()->encodeErrors($errors) : true;
+        return (!empty($errors)) ? Encoder::instance()->encodeErrors($errors) : true;
     }
 }

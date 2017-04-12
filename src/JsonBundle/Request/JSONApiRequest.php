@@ -132,6 +132,7 @@ class JSONApiRequest
      */
     public function parseDataSectionByKey($key)
     {
+        print_r(json_decode($this->getRequest()->getContent(), true));die();
         $data = $this->parseJson();
 
         if (array_key_exists($key, $data['data'])) {
@@ -160,17 +161,10 @@ class JSONApiRequest
     /**
      * @return string
      */
-    public function getClassNameByType()
+    public function getClassNameByType($type)
     {
-        $data = $this->parseJson();
-
-        if (array_key_exists('type', $data['data'])) {
-
-            $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
-            return $invector->singularize($invector->camelize($data['data']['type'], Inflector::UPCASE_FIRST_LETTER));
-        }
-
-        return '';
+        $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
+        return $invector->singularize($invector->camelize($type, Inflector::UPCASE_FIRST_LETTER));
     }
 
     /**
