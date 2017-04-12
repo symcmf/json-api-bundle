@@ -2,13 +2,13 @@
 
 namespace JsonBundle\Services\Validator;
 
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Validator\RecursiveValidator;
 use Symfony\Component\Validator\ConstraintViolation;
 use Doctrine\ORM\EntityManager;
 use JsonBundle\Category\Hydrator;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Document\Error;
-use Neomerx\JsonApi\Document\Link;
 
 class Validator extends AbstractValidator
 {
@@ -81,18 +81,18 @@ class Validator extends AbstractValidator
             /** @var ConstraintViolation $violation*/
             foreach ($violations as $violation) {
                 $errors[] = new Error(
-                    'some-id',
-                    new Link('about-link'),
-                    'some-status',
-                    'some-code',
-                    'some-title',
+                    null,
+                    null,
+                    'Bad request',
+                    Response::HTTP_BAD_REQUEST,
                     $violation->getMessage(),
-                    ['source' => 'data'],
-                    ['some' => 'meta']
+                    $violation->getMessage(),
+                    ['source' => 'data/attributes/'. $violation->getPropertyPath() ],
+                    null
                 );
             }
         }
 
-        return ($violations) ? Encoder::instance()->encodeErrors($errors) : true;
+        return (!empty($errors)) ? Encoder::instance()->encodeErrors($errors) : true;
     }
 }

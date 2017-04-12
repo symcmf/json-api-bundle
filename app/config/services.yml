@@ -24,14 +24,11 @@ services:
         class: JsonBundle\Request\JSONApiRequest
         arguments: ['@request_stack']
 
-#    jsonapi.request.listener:
-#        class: JsonBundle\Listeners\RequestListener
-#        arguments: ['@service_container']
-#        tags:
-#            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
-
     jsonapi.listener:
         class: JsonBundle\Listeners\ControllerListener
         arguments: ['@service_container']
         tags:
             - { name: kernel.event_listener, event: kernel.controller, method: onKernelController }
+
+    jsonapi.response:
+        class: JsonBundle\Services\JSONApiResponse

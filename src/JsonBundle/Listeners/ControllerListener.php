@@ -3,7 +3,10 @@
 namespace JsonBundle\Listeners;
 
 use JsonBundle\Controller\BaseController;
+use JsonBundle\Request\JSONApiRequest;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
 class ControllerListener
@@ -24,6 +27,7 @@ class ControllerListener
 
     /**
      * @param FilterControllerEvent $event
+     * @return Response|void
      */
     public function onKernelController(FilterControllerEvent $event)
     {
@@ -38,18 +42,28 @@ class ControllerListener
             return;
         }
 
-        if ($controller[0] instanceof BaseController) {
+        if ( array_shift($controller) instanceof BaseController) {
 
-            /** @var \JsonBundle\Request\JSONApiRequest $jsonApiRequest */
+            /** @var JSONApiRequest $jsonApiRequest */
             $jsonApiRequest =  $this->container->get('jsonapi.request');
 
             $validator = $this->container->get('jsonapi.validator');
 
-            return $validator->validate(
+            $result = $validator->validate(
                 $jsonApiRequest->getDataAttributes(),
                 $jsonApiRequest->getRelationSection(),
-                $jsonApiRequest->getClassNameByType()
+                $jsonApiRequest->getClassNameByType($jsonApiRequest->getDataSection()['type'])
             );
+
+            if ($result !== true) {
+
+                $request = new Request();
+                $resolver =  $this->container->get('debug.controller_resolver');
+                $request->attributes->set('_controller', 'JsonBundle:Error:responseError');
+
+                $event->getRequest()->attributes->set('_errors', $result);
+                $event->setController($resolver->getController($request));
+            }
         }
     }
 }
