@@ -30,67 +30,53 @@ class CategoryController extends BaseController
      */
     protected function getHydrator()
     {
-        return new CategoryHydrator($this->getDoctrine()->getManager());
+        return $this->get('jsonapi.category.hydrator');
     }
 
     /**
      *
      * @Route("/api/category", name="post_category")
      *
-     * @param Request $request
-     *
      * @return Response
      */
-    public function postCategory(Request $request)
+    public function postCategory()
     {
-        return $this->postEntity($request);
+        return $this->postEntity();
     }
 
     /**
      * @Route("/api/categories", name="get_categories")
      * @Method("GET")
      *
-     * @param Request $request
-     *
      * @return Response
      */
-    public function getCategoriesAction(Request $request)
+    public function getCategoriesAction()
     {
-        $category = $this->getList($request);
-
-        return $this->createResponse($this->viewObject($request, $category), Response::HTTP_OK);
+        return $this->getList();
     }
 
     /**
      * @Route("/api/categories/{id}", name="get_category")
      * @Method("GET")
      *
-     * @param Request $request
-     *
      * @return Response
      */
-    public function getCategoryAction($id, Request $request)
+    public function getCategoryAction($id)
     {
-        $category = $this->getEntity($id, $request);
-
-        return $this->createResponse($this->viewObject($request, $category), Response::HTTP_OK);
+        return $this->getEntity($id);
     }
 
     /**
      * @param $id
-     * @param Request $request
      *
      * @Route("/api/categories/{id}", name="put_category")
      * @Method("PUT")
      *
      * @return Response
      */
-    public function putCategory($id, Request $request)
+    public function putCategory($id)
     {
-        // TODO sure that it's good idea. Need to fix
-        $this->hydrator = new CategoryHydrator($this->getDoctrine()->getManager());
-
-        return $this->putEntity($id, $request);
+        return $this->putEntity($id);
     }
 
     /**
@@ -106,7 +92,7 @@ class CategoryController extends BaseController
             ArticleProxy::class => ArticleSchema::class,
             Article::class => ArticleSchema::class,
 
-        ], new EncoderOptions(JSON_PRETTY_PRINT, stripslashes('http://example.com/api')));
+        ], new EncoderOptions(JSON_PRETTY_PRINT, stripslashes($this->link)));
     }
 
     /**

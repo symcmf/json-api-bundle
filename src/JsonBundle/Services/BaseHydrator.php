@@ -52,12 +52,13 @@ abstract class BaseHydrator
     /**
      * @return array
      */
-    abstract protected function getAttributes();
+    abstract public function getAttributes();
 
     /**
      * @return array
      */
-    abstract protected function getRelations();
+    abstract public function getRelations();
+
 
     /**
      * @param $item - one row in data section in section relationships JSON API
@@ -69,8 +70,6 @@ abstract class BaseHydrator
         $child = $this->entityManager->getRepository($class)->find($item['id']);
 
         return $this->setParamsToObject($object, [$field => $child]);
-
-//        return $object;
     }
 
     /**
@@ -148,7 +147,7 @@ abstract class BaseHydrator
      * @param array $requestAttributes
      * @param array $relationAttributes
      *
-     * @return array
+     * @return object
      */
     public function updateValues(array $requestAttributes, array $relationAttributes)
     {

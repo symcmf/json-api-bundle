@@ -1,5 +1,6 @@
 <?php
 
+use JsonBundle\Request\JSONApiRequest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Debug\Debug;
 
@@ -24,6 +25,40 @@ Debug::enable();
 
 $kernel = new AppKernel('dev', true);
 $kernel->loadClassCache();
+
+
+//Request::setFactory(function (
+//    array $query = array(),
+//    array $request = array(),
+//    array $attributes = array(),
+//    array $cookies = array(),
+//    array $files = array(),
+//    array $server = array(),
+//    $content = null
+//) {
+//    return JSONApiRequest::create(
+//        $query,
+//        $request,
+//        $attributes,
+//        $cookies,
+//        $files,
+//        $server,
+//        $content
+//    );
+//});
+
+//
+
+
+
+
+//Request::setFactory(function (array $request = array(), array $query = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null) {
+//    return JSONApiRequest::create($request, $query, $attributes, $cookies, $files, $server, $content);
+//});
+
+//$jsonRequest = JSONApiRequest::createFromGlobals();
+
+
 $request = Request::createFromGlobals();
 $response = $kernel->handle($request);
 $response->send();

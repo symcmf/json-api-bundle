@@ -1,9 +1,10 @@
 <?php
 
-namespace JsonBundle\Article;
+namespace JsonBundle\Category;
 
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 class Validators
 {
@@ -15,9 +16,10 @@ class Validators
     public function getAttributeRules()
     {
         return [
-            'title' => [
+            'name' => [
                 new Length(['min' => 10]),
-                new NotBlank()
+                new NotBlank(),
+
             ],
             'description' => [
                 new Length(['min' => 10]),
