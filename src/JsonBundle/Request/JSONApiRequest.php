@@ -132,7 +132,6 @@ class JSONApiRequest
      */
     public function parseDataSectionByKey($key)
     {
-        print_r(json_decode($this->getRequest()->getContent(), true));die();
         $data = $this->parseJson();
 
         if (array_key_exists($key, $data['data'])) {

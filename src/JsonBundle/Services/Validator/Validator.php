@@ -65,6 +65,8 @@ class Validator extends AbstractValidator
         /** @var Hydrator $hydrator */
         $hydrator = $this->getHydrator($type);
 
+        $errors = [];
+
         $object = $this->getEntity($type);
 
         foreach ($hydrator->getAttributes() as $fieldName) {
@@ -75,24 +77,6 @@ class Validator extends AbstractValidator
             }
         }
         $violations = $this->validator->validate($object);
-
-        $errors = [];
-
-        print_r($relationAttributes['data']);die();
-
-        foreach ($relationAttributes as $type => $data) {
-            $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
-            /** @var Hydrator $hydrator */
-            $hydrator = $this->getHydrator($invector->singularize($invector->camelize($type, Inflector::UPCASE_FIRST_LETTER)));
-//            var_dump($hydrator);die();
-            foreach ($hydrator->getAttributes() as $fieldName) {
-                if (array_key_exists($fieldName, $requestAttributes)) {
-
-                    /** @var Hydrator $hydrator */
-                    $hydrator->setParamsToObject($object, $requestAttributes, $hydrator->getAttributes());
-                }
-            }
-        }
 
         if (count($violations) !== 0) {
             /** @var ConstraintViolation $violation */
@@ -108,6 +92,46 @@ class Validator extends AbstractValidator
                     null
                 );
             }
+        }
+
+        foreach ($relationAttributes as $type => $data) {
+            $dataRows = $relationAttributes[$type]['data'];
+//            var_dump($dataRows);die;
+            if (!isset($dataRows['type'])) {
+                foreach ($dataRows as $attributes) {
+                    $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
+                    /** @var Hydrator $hydrator */
+                    $hydrator = $this->getHydrator($invector->singularize($invector->camelize($attributes['type'], Inflector::UPCASE_FIRST_LETTER)));
+                    $entity = $this->getEntity($invector->singularize($invector->camelize($attributes['type'], Inflector::UPCASE_FIRST_LETTER)));
+                    unset($attributes['type']);
+
+                    foreach ($hydrator->getAttributes() as $fieldName) {
+                        if (array_key_exists($fieldName, $attributes)) {
+
+                            /** @var Hydrator $hydrator */
+                            $hydrator->setParamsToObject($entity, $attributes, $hydrator->getAttributes());
+                        }
+                    }
+                    $violations = $this->validator->validate($object);
+
+                    if (count($violations) !== 0) {
+                        /** @var ConstraintViolation $violation */
+                        foreach ($violations as $violation) {
+                            $errors[] = new Error(
+                                null,
+                                null,
+                                'Bad request',
+                                Response::HTTP_BAD_REQUEST,
+                                $violation->getMessage(),
+                                $violation->getMessage(),
+                                ['source' => 'data/relations/' . $violation->getPropertyPath()],
+                                null
+                            );
+                        }
+                    }
+                }
+            }
+
         }
 //        var_dump(Encoder::instance()->encodeErrors($errors));die();
         return (!empty($errors)) ? Encoder::instance()->encodeErrors($errors) : true;
