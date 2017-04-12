@@ -3,14 +3,14 @@
 namespace JsonBundle\Request;
 
 use ICanBoogie\Inflector;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
-trait RequestTrait
+class JSONApiRequest
 {
     /**
-     * @var Request
+     * @var RequestStack
      */
-    private $request;
+    protected $requestStack;
 
     /**
      * @var string
@@ -18,11 +18,20 @@ trait RequestTrait
     private $contentType = 'application/vnd.api+json';
 
     /**
-     * @param Request $request
+     * TestRequest constructor.
+     * @param RequestStack $requestStack
      */
-    public function setRequest(Request $request)
+    public function __construct(RequestStack $requestStack)
     {
-        $this->request = $request;
+        $this->requestStack = $requestStack;
+    }
+
+    /**
+     * @return null|\Symfony\Component\HttpFoundation\Request
+     */
+    public function getRequest()
+    {
+        return $this->requestStack->getCurrentRequest();
     }
 
     /**
@@ -42,7 +51,7 @@ trait RequestTrait
      */
     public function getMethod()
     {
-        return $this->request->getMethod();
+        return $this->getRequest()->getMethod();
     }
 
     /**
@@ -52,7 +61,7 @@ trait RequestTrait
      */
     public function getSortAttributes()
     {
-        return $this->getArraySeparator(',', $this->request->query->get('sort'));
+        return $this->getArraySeparator(',', $this->getRequest()->query->get('sort'));
     }
 
     /**
@@ -61,7 +70,7 @@ trait RequestTrait
     public function getSparseFieldAttributes()
     {
         $result = [];
-        $fields = $this->request->get('fields');
+        $fields = $this->getRequest()->request->get('fields');
 
         if ($fields) {
             foreach ($fields as $key => $value) {
@@ -76,7 +85,7 @@ trait RequestTrait
      */
     public function getIncludeAttributes()
     {
-        return $this->getArraySeparator(',', $this->request->query->get('include'));
+        return $this->getArraySeparator(',', $this->getRequest()->query->get('include'));
     }
 
     /**
@@ -84,7 +93,7 @@ trait RequestTrait
      */
     public function getPaginationAttributes()
     {
-        return $this->request->query->get('page');
+        return $this->getRequest()->query->get('page');
     }
 
     /**
@@ -94,11 +103,12 @@ trait RequestTrait
     {
         $data = [];
 
-        if ($this->request->getMethod() == 'POST' ||
-            $this->request->getMethod() == 'PUT') {
+        if ($this->getRequest()->getMethod() === 'POST' ||
+            $this->getRequest()->getMethod() === 'PUT'
+        ){
 
-            if ($this->request->headers->get('content-type') == $this->contentType) {
-                $data = json_decode($this->request->getContent(), true);
+            if ($this->getRequest()->headers->get('content-type') == $this->contentType) {
+                $data = json_decode($this->getRequest()->getContent(), true);
                 // TODO check correct format of request json
             }
         }
@@ -116,16 +126,16 @@ trait RequestTrait
     }
 
     /**
+     * @param $key
+     *
      * @return array
      */
-    public function getDataAttributes()
+    private function parseDataSectionByKey($key)
     {
         $data = $this->parseJson();
 
-        // TODO refactoring camelCase to function
-
-        if (array_key_exists('attributes', $data['data'])) {
-            return (!empty($data)) ? $data['data']['attributes'] : [];
+        if (array_key_exists($key, $data['data'])) {
+            return (!empty($data)) ? $data['data'][$key] : [];
         }
 
         return [];
@@ -134,18 +144,17 @@ trait RequestTrait
     /**
      * @return array
      */
+    public function getDataAttributes()
+    {
+        return $this->parseDataSectionByKey('attributes');
+    }
+
+    /**
+     * @return array
+     */
     public function getRelationSection()
     {
-        $data = $this->parseJson();
-
-
-        // TODO refactoring camelCase to function
-
-        if (array_key_exists('relationships', $data['data'])) {
-            return (!empty($data)) ? $data['data']['relationships'] : [];
-        }
-
-        return [];
+        return $this->parseDataSectionByKey('relationships');
     }
 
     /**
@@ -154,8 +163,6 @@ trait RequestTrait
     public function getType()
     {
         $data = $this->parseJson();
-
-        // TODO refactoring camelCase to function
 
         if (array_key_exists('type', $data['data'])) {
 

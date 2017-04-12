@@ -2,15 +2,11 @@
 
 namespace JsonBundle\Controller;
 
-use AppBundle\Entity\Category;
-use JsonBundle\Request\RequestTrait;
 use JsonBundle\Services\BaseJSONApiBundle;
-use JsonBundle\Services\Validator\Validator;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Encoder\Parameters\EncodingParameters;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -19,8 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 abstract class BaseController extends Controller
 {
-
-    use RequestTrait;
+    protected $link = 'http://example.com/api';
 
     /**
      * @return string
@@ -45,7 +40,13 @@ abstract class BaseController extends Controller
         return $this->get('jsonapi.base.service');
     }
 
-
+    /**
+     * @return object
+     */
+    protected function getJsonRequest()
+    {
+        return $this->get('jsonapi.request');
+    }
 
     /**
      * @return EncodingParameters
@@ -53,10 +54,10 @@ abstract class BaseController extends Controller
     private function getEncodingParameters()
     {
         $params = new EncodingParameters(
-            $this->getIncludeAttributes(),
-            $this->getSparseFieldAttributes(),
-            $this->getSortAttributes(),
-            $this->getPaginationAttributes()
+            $this->getJsonRequest()->getIncludeAttributes(),
+            $this->getJsonRequest()->getSparseFieldAttributes(),
+            $this->getJsonRequest()->getSortAttributes(),
+            $this->getJsonRequest()->getPaginationAttributes()
         );
 
         return $params;
@@ -81,50 +82,45 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * @param Request $request
      * @param $object
      *
      * @return mixed
      */
-    protected function viewObject(Request $request, $object)
+    protected function viewObject($object)
     {
-        $this->setRequest($request);
+        return $this->getEncoder()->encodeData($object, $this->getEncodingParameters());
+    }
 
-        return $this
-            ->getEncoder()->encodeData($object, $this->getEncodingParameters());
+
+    private function generateArrayOfPageLinks($page, $total)
+    {
+
     }
 
     /**
-     * @param Request $request
      *
-     * @return mixed
+     * @return Response
      */
-    protected function getList(Request $request)
+    protected function getList()
     {
-        $this->setRequest($request);
+        $objects = $this->getBaseService()->getQuery(
+            $this->getClass(),
+            $this->getJsonRequest()->getPaginationAttributes()
+        );
 
-        /** @var Validator $validator */
-        $validator = $this->get('jsonapi.validator');
-        $validator->validate($this->getDataAttributes(), $this->getRelationSection(),$this->getType());
-
-        return $this
-            ->get('jsonapi.base.service')
-            ->getQuery($this->getClass(), $this->getPaginationAttributes());
+        return $this->createResponse($this->viewObject($objects), Response::HTTP_OK);
     }
 
     /**
      * @param $id
-     * @param Request $request
      *
-     * @return object|null
+     * @return Response
      */
-    protected function getEntity($id, Request $request)
+    protected function getEntity($id)
     {
-        $this->setRequest($request);
+        $object = $this->getBaseService()->getObject($id, $this->getClass());
 
-        return $this
-            ->get('jsonapi.base.service')
-            ->getObject($id, $this->getClass());
+        return $this->createResponse($this->viewObject($object), Response::HTTP_OK);
     }
 
     /**
@@ -153,55 +149,45 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * @param Request $request
-     *
      * @return Response
      */
-    protected function postEntity(Request $request)
+    protected function postEntity()
     {
-        $this->setRequest($request);
-
-        /** @var Validator $validator */
-        $validator = $this->get('jsonapi.validator');
-
-        $validator->validate(
-            $this->getDataAttributes(),
-            $this->getRelationSection(),
-            $this->getType()
-        );
-
-
-        $errorEncoder = $this->checkIdField($this->getDataSection());
+        $errorEncoder = $this->checkIdField($this->getJsonRequest()->getDataSection());
 
         // if catch error
         if ($errorEncoder) {
             return $this->createResponse($errorEncoder, Response::HTTP_FORBIDDEN);
         }
 
-        $object = $this->getHydrator()->setValues($this->getDataAttributes(), $this->getRelationSection());
+        $object = $this->getHydrator()->setValues(
+            $this->getJsonRequest()->getDataAttributes(),
+            $this->getJsonRequest()->getRelationSection());
 
         // TODO uncomment after debug
 //        $this->get('jsonapi.base.service')->saveObject($object);
 
-        return $this->createResponse($this->viewObject($request, $object), Response::HTTP_CREATED);
+        return $this->createResponse($this->viewObject($object), Response::HTTP_CREATED);
     }
 
     /**
      * @param $id
-     * @param Request $request
      *
      * @return Response
      */
-    protected function putEntity($id, Request $request)
+    protected function putEntity($id)
     {
-        $this->setRequest($request);
-
         if (!$this->getBaseService()->getObject($id, $this->getClass())) {
-            $this->createResponse($this->viewObject($request, new Category()), Response::HTTP_NOT_FOUND);
+            $this->createResponse($this->viewObject([]), Response::HTTP_NOT_FOUND);
         }
 
-        $object = $this->getHydrator()->updateValues($this->getDataSection(), $this->getRelationSection());
+        $object = $this->getHydrator()->updateValues(
+            $this->getJsonRequest()->getDataSection(),
+            $this->getJsonRequest()->getRelationSection()
+        );
+        // TODO uncomment after debug
+//        $this->getBaseService()->updateObject($object);
 
-        return $this->createResponse($this->viewObject($request, $object), Response::HTTP_OK);
+        return $this->createResponse($this->viewObject($object), Response::HTTP_OK);
     }
 }

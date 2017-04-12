@@ -171,8 +171,6 @@ trait MethodsTrait
      */
     private function isEqual($current, $new)
     {
-//        var_dump($current, $new);
-
         if ($current instanceof PersistentCollection) {
             return $current->contains($new) ? true : false;
         }

@@ -73,4 +73,16 @@ class BaseJSONApiBundle
 
         return $object;
     }
+
+    /**
+     * @param $object
+     *
+     * @return object
+     */
+    public function updateObject($object)
+    {
+        $this->entityManager->flush();
+
+        return $object;
+    }
 }

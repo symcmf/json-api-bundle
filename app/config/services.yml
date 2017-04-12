@@ -1,12 +1,12 @@
 # Learn more about services, parameters and containers at
 # http://symfony.com/doc/current/service_container.html
+imports:
+    - { resource: json-api/category_services.yml}
+
 parameters:
     #parameter_name: value
 
 services:
-    #service_name:
-    #    class: AppBundle\Directory\ClassName
-    #    arguments: ['@another_service_name', 'plain_value', '%parameter_name%']
 
     jsonapi.base.service:
         class: JsonBundle\Services\BaseJSONApiBundle
@@ -19,3 +19,7 @@ services:
     jsonapi.validator:
         class: JsonBundle\Services\Validator\Validator
         arguments: ['@validator', '@doctrine.orm.default_entity_manager']
+
+    jsonapi.request:
+        class: JsonBundle\Request\JSONApiRequest
+        arguments: ['@request_stack']
