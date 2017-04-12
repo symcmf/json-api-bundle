@@ -105,7 +105,7 @@ class JSONApiRequest
 
         if ($this->getRequest()->getMethod() === 'POST' ||
             $this->getRequest()->getMethod() === 'PUT'
-        ){
+        ) {
 
             if ($this->getRequest()->headers->get('content-type') == $this->contentType) {
                 $data = json_decode($this->getRequest()->getContent(), true);
@@ -130,7 +130,7 @@ class JSONApiRequest
      *
      * @return array
      */
-    private function parseDataSectionByKey($key)
+    public function parseDataSectionByKey($key)
     {
         $data = $this->parseJson();
 
@@ -160,7 +160,7 @@ class JSONApiRequest
     /**
      * @return string
      */
-    public function getType()
+    public function getClassNameByType()
     {
         $data = $this->parseJson();
 
@@ -171,5 +171,20 @@ class JSONApiRequest
         }
 
         return '';
+    }
+
+    /**
+     * @return array|string
+     */
+    public function getType()
+    {
+        // if method get we can get type from url
+        if ($this->getRequest()->getMethod() === 'GET') {
+            $array = explode('/', $this->getRequest()->getPathInfo());
+            return end($array);
+        } else {
+            // in another situation it must be in body of request (methods POST | PUT)
+            return $this->parseDataSectionByKey('type');
+        }
     }
 }

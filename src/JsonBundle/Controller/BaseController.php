@@ -2,8 +2,10 @@
 
 namespace JsonBundle\Controller;
 
+use JsonBundle\Request\JSONApiRequest;
 use JsonBundle\Services\BaseJSONApiBundle;
 use Neomerx\JsonApi\Document\Error;
+use Neomerx\JsonApi\Document\Link;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Encoder\Parameters\EncodingParameters;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -15,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 abstract class BaseController extends Controller
 {
-    protected $link = 'http://example.com/api';
+    protected $link = 'http://homestead.app/api';
 
     /**
      * @return string
@@ -41,7 +43,7 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * @return object
+     * @return JSONApiRequest
      */
     protected function getJsonRequest()
     {
@@ -91,10 +93,30 @@ abstract class BaseController extends Controller
         return $this->getEncoder()->encodeData($object, $this->getEncodingParameters());
     }
 
-
-    private function generateArrayOfPageLinks($page, $total)
+    /**
+     * @param $page
+     * @param $total
+     * @param $object
+     *
+     * @return Response
+     */
+    private function viewObjectWithPaginateLink($page, $total, $object)
     {
+        $nextPage = $page + 1;
+        $prevPage = ($page > 1) ? $page - 1 : $page;
 
+        $type = $this->getJsonRequest()->getType();
+
+        $pages = [
+            Link::PREV  => new Link('/' . $type . '?page[number]=' . $prevPage . '&page[size]=' . $total),
+            Link::NEXT  => new Link('/' . $type . '?page[number]=' . $nextPage . '&page[size]=' . $total),
+        ];
+
+        $view = $this->getEncoder()
+            ->withLinks($pages)
+            ->encodeData($object, $this->getEncodingParameters());
+
+        return $this->createResponse($view, Response::HTTP_OK);
     }
 
     /**
@@ -103,12 +125,19 @@ abstract class BaseController extends Controller
      */
     protected function getList()
     {
-        $objects = $this->getBaseService()->getQuery(
-            $this->getClass(),
-            $this->getJsonRequest()->getPaginationAttributes()
-        );
+        $pagination = $this->getJsonRequest()->getPaginationAttributes();
 
-        return $this->createResponse($this->viewObject($objects), Response::HTTP_OK);
+        $objects = $this->getBaseService()->getQuery(
+            $this->getClass(), $pagination);
+
+        if (empty($pagination)) {
+            return $this->createResponse($this->viewObject($objects), Response::HTTP_OK);
+        }
+
+        return $this->viewObjectWithPaginateLink(
+            $pagination['number'],
+            $pagination['size'],
+            $objects);
     }
 
     /**
