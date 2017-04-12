@@ -2,13 +2,14 @@
 
 namespace JsonBundle\Services\Validator;
 
+use ICanBoogie\Inflector;
 use Symfony\Component\Validator\Validator\RecursiveValidator;
 use Symfony\Component\Validator\ConstraintViolation;
 use Doctrine\ORM\EntityManager;
 use JsonBundle\Category\Hydrator;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Document\Error;
-use Neomerx\JsonApi\Document\Link;
+use Symfony\Component\HttpFoundation\Response;
 
 class Validator extends AbstractValidator
 {
@@ -77,22 +78,30 @@ class Validator extends AbstractValidator
 
         $errors = [];
 
+
+
+        foreach ($relationAttributes as $type => $data) {
+            $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
+            /** @var Hydrator $hydrator */
+            $hydrator = $this->getHydrator($invector->singularize($invector->camelize($type, Inflector::UPCASE_FIRST_LETTER)));
+            var_dump($hydrator);die();
+        }
+
         if (count($violations) !== 0) {
-            /** @var ConstraintViolation $violation*/
+            /** @var ConstraintViolation $violation */
             foreach ($violations as $violation) {
                 $errors[] = new Error(
-                    'some-id',
-                    new Link('about-link'),
-                    'some-status',
-                    'some-code',
-                    'some-title',
+                    null,
+                    null,
+                    'Bad request',
+                    Response::HTTP_BAD_REQUEST,
+                    'Bad request',
                     $violation->getMessage(),
-                    ['source' => 'data'],
-                    ['some' => 'meta']
+                    ['source' => 'data/' . $violation->getPropertyPath()]
                 );
             }
         }
-
+//        var_dump(Encoder::instance()->encodeErrors($errors));die();
         return ($violations) ? Encoder::instance()->encodeErrors($errors) : true;
     }
 }
