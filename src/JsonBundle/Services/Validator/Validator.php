@@ -102,9 +102,10 @@ class Validator extends AbstractValidator
                     null,
                     'Bad request',
                     Response::HTTP_BAD_REQUEST,
-                    'Bad request',
                     $violation->getMessage(),
-                    ['source' => 'data/' . $violation->getPropertyPath()]
+                    $violation->getMessage(),
+                    ['source' => 'data/attributes/'. $violation->getPropertyPath() ],
+                    null
                 );
             }
         }
