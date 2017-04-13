@@ -2,7 +2,7 @@
 
 namespace JsonBundle\Services\Validator;
 
-use ICanBoogie\Inflector;
+use JsonBundle\Request\JSONApiRequest;
 use Symfony\Component\Validator\Validator\RecursiveValidator;
 use Symfony\Component\Validator\ConstraintViolation;
 use Doctrine\ORM\EntityManager;
@@ -11,25 +11,28 @@ use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Document\Error;
 use Symfony\Component\HttpFoundation\Response;
 
-class Validator extends AbstractValidator
+class Validator
 {
     const ENTITY_NAMESPACE = 'AppBundle\Entity\\';
 
     protected $requestAttributes;
-
     protected $validator;
-
     protected $entityManager;
+    protected $jsonApiRequest;
+    protected $jsonApiError;
 
     /**
      * Validator constructor.
      * @param RecursiveValidator $validator
      * @param EntityManager $entityManager
+     * @param JSONApiRequest $jsonApiRequest
      */
-    public function __construct($validator, $entityManager)
+    public function __construct($validator, $entityManager, $jsonApiRequest, $jsonApiError)
     {
         $this->validator = $validator;
         $this->entityManager = $entityManager;
+        $this->jsonApiRequest = $jsonApiRequest;
+        $this->jsonApiError = $jsonApiError;
     }
 
     /**
@@ -55,18 +58,14 @@ class Validator extends AbstractValidator
     }
 
     /**
-     * @param array $requestAttributes
-     * @param array $relationAttributes
+     * @param array $errors
      * @param string $type
-     * @return bool|string
+     * @param array $requestAttributes
      */
-     public function validate($requestAttributes, $relationAttributes, $type)
+    protected function getMainEntityErrors(&$errors, $type, $requestAttributes)
     {
         /** @var Hydrator $hydrator */
         $hydrator = $this->getHydrator($type);
-
-        $errors = [];
-
         $object = $this->getEntity($type);
 
         foreach ($hydrator->getAttributes() as $fieldName) {
@@ -93,47 +92,100 @@ class Validator extends AbstractValidator
                 );
             }
         }
+    }
 
+    /**
+     * @param array $errors
+     * @param array $relationAttributes
+     * @return array|void
+     */
+    protected function getRelationEntitiesErrors(&$errors, $relationAttributes)
+    {
         foreach ($relationAttributes as $type => $data) {
             $dataRows = $relationAttributes[$type]['data'];
-//            var_dump($dataRows);die;
-            if (!isset($dataRows['type'])) {
-                foreach ($dataRows as $attributes) {
-                    $invector = Inflector::get(Inflector::DEFAULT_LOCALE);
-                    /** @var Hydrator $hydrator */
-                    $hydrator = $this->getHydrator($invector->singularize($invector->camelize($attributes['type'], Inflector::UPCASE_FIRST_LETTER)));
-                    $entity = $this->getEntity($invector->singularize($invector->camelize($attributes['type'], Inflector::UPCASE_FIRST_LETTER)));
-                    unset($attributes['type']);
 
-                    foreach ($hydrator->getAttributes() as $fieldName) {
-                        if (array_key_exists($fieldName, $attributes)) {
+            if (isset($dataRows['type'])) {
+                $dataType = $this->jsonApiRequest->getClassNameByType($dataRows['type']);
+                $hydrator = $this->getHydrator($dataType);
+                $entity = $this->getEntity($dataType);
+                unset($dataRows['type']);
 
-                            /** @var Hydrator $hydrator */
-                            $hydrator->setParamsToObject($entity, $attributes, $hydrator->getAttributes());
-                        }
+                foreach ($hydrator->getAttributes() as $fieldName) {
+                    if (array_key_exists($fieldName, $dataRows)) {
+
+                        /** @var Hydrator $hydrator */
+                        $hydrator->setParamsToObject($entity, $dataRows, $hydrator->getAttributes());
                     }
-                    $violations = $this->validator->validate($object);
+                }
+                $violations = $this->validator->validate($entity);
 
-                    if (count($violations) !== 0) {
-                        /** @var ConstraintViolation $violation */
-                        foreach ($violations as $violation) {
-                            $errors[] = new Error(
-                                null,
-                                null,
-                                'Bad request',
-                                Response::HTTP_BAD_REQUEST,
-                                $violation->getMessage(),
-                                $violation->getMessage(),
-                                ['source' => 'data/relations/' . $violation->getPropertyPath()],
-                                null
-                            );
-                        }
+                if (count($violations) !== 0) {
+                    /** @var ConstraintViolation $violation */
+                    foreach ($violations as $violation) {
+                        $errors[] = new Error(
+                            null,
+                            null,
+                            'Bad request',
+                            Response::HTTP_BAD_REQUEST,
+                            $violation->getMessage(),
+                            $violation->getMessage(),
+                            ['source' => 'data/relations/' . $violation->getPropertyPath()],
+                            null
+                        );
+                    }
+                }
+
+                return;
+            }
+
+            /* if in relationships data more then one rows */
+            foreach ($dataRows as $attributes) {
+                $dataType = $this->jsonApiRequest->getClassNameByType($attributes['type']);
+                $hydrator = $this->getHydrator($dataType);
+                $entity = $this->getEntity($dataType);
+                unset($attributes['type']);
+
+                foreach ($hydrator->getAttributes() as $fieldName) {
+                    if (array_key_exists($fieldName, $attributes)) {
+
+                        /** @var Hydrator $hydrator */
+                        $hydrator->setParamsToObject($entity, $attributes, $hydrator->getAttributes());
+                    }
+                }
+                $violations = $this->validator->validate($entity);
+
+                if (count($violations) !== 0) {
+                    /** @var ConstraintViolation $violation */
+                    foreach ($violations as $violation) {
+                        $errors[] = new Error(
+                            null,
+                            null,
+                            'Bad request',
+                            Response::HTTP_BAD_REQUEST,
+                            $violation->getMessage(),
+                            $violation->getMessage(),
+                            ['source' => 'data/relations/' . $violation->getPropertyPath()],
+                            null
+                        );
                     }
                 }
             }
-
         }
-//        var_dump(Encoder::instance()->encodeErrors($errors));die();
+    }
+
+    /**
+     * @param array $requestAttributes
+     * @param array $relationAttributes
+     * @param string $type
+     * @return bool|string
+     */
+    public function validate($requestAttributes, $relationAttributes, $type)
+    {
+        $errors = [];
+
+        $this->getMainEntityErrors($errors, $type, $requestAttributes);
+        $this->getRelationEntitiesErrors($errors, $relationAttributes);
+
         return (!empty($errors)) ? Encoder::instance()->encodeErrors($errors) : true;
     }
 }
