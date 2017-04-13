@@ -163,6 +163,7 @@ abstract class BaseController extends Controller
         // TODO need to user translations for errors
 
         if (array_key_exists('id', $data)) {
+            // TODO: need remake through the service jsonapi.error
             $error = new Error(
                 null,
                 null,
