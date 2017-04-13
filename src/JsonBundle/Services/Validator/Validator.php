@@ -3,13 +3,12 @@
 namespace JsonBundle\Services\Validator;
 
 use JsonBundle\Request\JSONApiRequest;
+use JsonBundle\Services\JSONApiError;
 use Symfony\Component\Validator\Validator\RecursiveValidator;
 use Symfony\Component\Validator\ConstraintViolation;
 use Doctrine\ORM\EntityManager;
 use JsonBundle\Category\Hydrator;
 use Neomerx\JsonApi\Encoder\Encoder;
-use Neomerx\JsonApi\Document\Error;
-use Symfony\Component\HttpFoundation\Response;
 
 class Validator
 {
@@ -26,6 +25,7 @@ class Validator
      * @param RecursiveValidator $validator
      * @param EntityManager $entityManager
      * @param JSONApiRequest $jsonApiRequest
+     * @param JSONApiError $jsonApiError
      */
     public function __construct($validator, $entityManager, $jsonApiRequest, $jsonApiError)
     {
@@ -80,15 +80,9 @@ class Validator
         if (count($violations) !== 0) {
             /** @var ConstraintViolation $violation */
             foreach ($violations as $violation) {
-                $errors[] = new Error(
-                    null,
-                    null,
-                    'Bad request',
-                    Response::HTTP_BAD_REQUEST,
+                $errors[] = $this->jsonApiError->getBadRequestError(
                     $violation->getMessage(),
-                    $violation->getMessage(),
-                    ['source' => 'data/attributes/'. $violation->getPropertyPath() ],
-                    null
+                    ['source' => 'data/attributes/' . $violation->getPropertyPath()]
                 );
             }
         }
@@ -122,15 +116,9 @@ class Validator
                 if (count($violations) !== 0) {
                     /** @var ConstraintViolation $violation */
                     foreach ($violations as $violation) {
-                        $errors[] = new Error(
-                            null,
-                            null,
-                            'Bad request',
-                            Response::HTTP_BAD_REQUEST,
+                        $errors[] = $this->jsonApiError->getBadRequestError(
                             $violation->getMessage(),
-                            $violation->getMessage(),
-                            ['source' => 'data/relations/' . $violation->getPropertyPath()],
-                            null
+                            ['source' => 'data/relations/'. $violation->getPropertyPath()]
                         );
                     }
                 }
@@ -157,15 +145,9 @@ class Validator
                 if (count($violations) !== 0) {
                     /** @var ConstraintViolation $violation */
                     foreach ($violations as $violation) {
-                        $errors[] = new Error(
-                            null,
-                            null,
-                            'Bad request',
-                            Response::HTTP_BAD_REQUEST,
+                        $errors[] = $this->jsonApiError->getBadRequestError(
                             $violation->getMessage(),
-                            $violation->getMessage(),
-                            ['source' => 'data/relations/' . $violation->getPropertyPath()],
-                            null
+                            ['source' => 'data/relations/'. $violation->getPropertyPath()]
                         );
                     }
                 }
