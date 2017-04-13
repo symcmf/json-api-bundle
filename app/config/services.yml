@@ -18,7 +18,7 @@ services:
 
     jsonapi.validator:
         class: JsonBundle\Services\Validator\Validator
-        arguments: ['@validator', '@doctrine.orm.default_entity_manager']
+        arguments: ['@validator', '@doctrine.orm.default_entity_manager', '@jsonapi.request', '@jsonapi.error']
 
     jsonapi.request:
         class: JsonBundle\Request\JSONApiRequest
@@ -32,3 +32,6 @@ services:
 
     jsonapi.response:
         class: JsonBundle\Services\JSONApiResponse
+
+    jsonapi.error:
+        class: JsonBundle\Services\JSONApiError

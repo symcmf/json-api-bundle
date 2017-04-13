@@ -4,6 +4,7 @@ namespace JsonBundle\Listeners;
 
 use JsonBundle\Controller\BaseController;
 use JsonBundle\Request\JSONApiRequest;
+use JsonBundle\Services\Validator\Validator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +48,7 @@ class ControllerListener
             /** @var JSONApiRequest $jsonApiRequest */
             $jsonApiRequest =  $this->container->get('jsonapi.request');
 
+            /** @var Validator $validator */
             $validator = $this->container->get('jsonapi.validator');
 
             $result = $validator->validate(
