@@ -4,6 +4,7 @@ namespace JsonBundle\Controller;
 
 use JsonBundle\Request\JSONApiRequest;
 use JsonBundle\Services\BaseJSONApiBundle;
+use JsonBundle\Services\JSONApiError;
 use JsonBundle\Services\Validator\Validator;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Document\Link;
@@ -156,23 +157,20 @@ abstract class BaseController extends Controller
     /**
      * @param $data - json api array (data section)
      *
-     * @return Response
+     * @return string
      */
     private function checkIdField($data)
     {
         // TODO need to user translations for errors
 
         if (array_key_exists('id', $data)) {
-            // TODO: need remake through the service jsonapi.error
-            $error = new Error(
-                null,
-                null,
-                'Forbidden',
-                Response::HTTP_FORBIDDEN,
-                'Unsupported request',
+            /** @var JSONApiError $jsonApiError */
+            $jsonApiError = $this->get('jsonapi.error');
+            $error = $jsonApiError->getErrorObjectByErrorName(
+                'forbidden',
                 'Unsupported request to create a resource with a client-generated ID',
                 ['source' => 'data/id'],
-                null
+                'Unsupported request'
             );
 
             return Encoder::instance()->encodeError($error);

@@ -80,7 +80,8 @@ class Validator
         if (count($violations) !== 0) {
             /** @var ConstraintViolation $violation */
             foreach ($violations as $violation) {
-                $errors[] = $this->jsonApiError->getBadRequestError(
+                $errors[] = $this->jsonApiError->getErrorObjectByErrorName(
+                    'badRequest',
                     $violation->getMessage(),
                     ['source' => 'data/attributes/' . $violation->getPropertyPath()]
                 );
@@ -116,7 +117,8 @@ class Validator
                 if (count($violations) !== 0) {
                     /** @var ConstraintViolation $violation */
                     foreach ($violations as $violation) {
-                        $errors[] = $this->jsonApiError->getBadRequestError(
+                        $errors[] = $this->jsonApiError->getErrorObjectByErrorName(
+                            'badRequest',
                             $violation->getMessage(),
                             ['source' => 'data/relations/'. $violation->getPropertyPath()]
                         );
@@ -145,7 +147,8 @@ class Validator
                 if (count($violations) !== 0) {
                     /** @var ConstraintViolation $violation */
                     foreach ($violations as $violation) {
-                        $errors[] = $this->jsonApiError->getBadRequestError(
+                        $errors[] = $this->jsonApiError->getErrorObjectByErrorName(
+                            'badRequest',
                             $violation->getMessage(),
                             ['source' => 'data/relations/'. $violation->getPropertyPath()]
                         );

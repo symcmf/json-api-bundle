@@ -10,6 +10,72 @@ use Symfony\Component\HttpFoundation\Response;
 
 class JSONApiError implements ErrorInterface
 {
+    const ERRORS = [
+        'continue' => Response::HTTP_CONTINUE,
+        'switchingProtocols' => Response::HTTP_SWITCHING_PROTOCOLS,
+        'processing' => Response::HTTP_PROCESSING,
+        'ok' => Response::HTTP_OK,
+        'created' => Response::HTTP_CREATED,
+        'accepted' => Response::HTTP_ACCEPTED,
+        'nonAuthoritativeInformation' => Response::HTTP_NON_AUTHORITATIVE_INFORMATION,
+        'noContent' => Response::HTTP_NO_CONTENT,
+        'resetContent' => Response::HTTP_RESET_CONTENT,
+        'partialContent' => Response::HTTP_PARTIAL_CONTENT,
+        'multiStatus' => Response::HTTP_MULTI_STATUS,
+        'alreadyReported' => Response::HTTP_ALREADY_REPORTED,
+        'imUsed' => Response::HTTP_IM_USED,
+        'multipleChoices' => Response::HTTP_MULTIPLE_CHOICES,
+        'movedPermanently' => Response::HTTP_MOVED_PERMANENTLY,
+        'found' => Response::HTTP_FOUND,
+        'seeOther' => Response::HTTP_SEE_OTHER,
+        'notModified' => Response::HTTP_NOT_MODIFIED,
+        'useProxy' => Response::HTTP_USE_PROXY,
+        'reserved' => Response::HTTP_RESERVED,
+        'temporaryRedirect' => Response::HTTP_TEMPORARY_REDIRECT,
+        'permanentlyRedirect' => Response::HTTP_PERMANENTLY_REDIRECT,
+        'badRequest' => Response::HTTP_BAD_REQUEST,
+        'unauthorized' => Response::HTTP_UNAUTHORIZED,
+        'paymentRequired' => Response::HTTP_PAYMENT_REQUIRED,
+        'forbidden' => Response::HTTP_FORBIDDEN,
+        'notFound' => Response::HTTP_NOT_FOUND,
+        'methodNotAllowed' => Response::HTTP_METHOD_NOT_ALLOWED,
+        'notAcceptable' => Response::HTTP_NOT_ACCEPTABLE,
+        'proxyAuthenticationRequest' => Response::HTTP_PROXY_AUTHENTICATION_REQUIRED,
+        'requestTimeout' => Response::HTTP_REQUEST_TIMEOUT,
+        'conflict' => Response::HTTP_CONFLICT,
+        'gone' => Response::HTTP_GONE,
+        'lengthRequired' => Response::HTTP_LENGTH_REQUIRED,
+        'preconditionFailed' => Response::HTTP_PRECONDITION_FAILED,
+        'requestEntityToLarge' => Response::HTTP_REQUEST_ENTITY_TOO_LARGE,
+        'requestUriTooLong' => Response::HTTP_REQUEST_URI_TOO_LONG,
+        'unsupportedMediaType' => Response::HTTP_UNSUPPORTED_MEDIA_TYPE,
+        'requestedRangeNotSatisfiable' => Response::HTTP_REQUESTED_RANGE_NOT_SATISFIABLE,
+        'expectationFailed' => Response::HTTP_EXPECTATION_FAILED,
+        'iAmATeapot' => Response::HTTP_I_AM_A_TEAPOT,
+        'misdirectedRequest' => Response::HTTP_MISDIRECTED_REQUEST,
+        'unprocessableEntity' => Response::HTTP_UNPROCESSABLE_ENTITY,
+        'locked' => Response::HTTP_LOCKED,
+        'failedDependency' => Response::HTTP_FAILED_DEPENDENCY,
+        'reservedForWebdayAdvancedCollectionsExpiredProposal' =>
+            Response::HTTP_RESERVED_FOR_WEBDAV_ADVANCED_COLLECTIONS_EXPIRED_PROPOSAL,
+        'upgradeRequired' => Response::HTTP_UPGRADE_REQUIRED,
+        'preconditionRequired' => Response::HTTP_PRECONDITION_REQUIRED,
+        'tooManyRequests' => Response::HTTP_TOO_MANY_REQUESTS,
+        'requestHeaderFieldsTooLarge' => Response::HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE,
+        'unavailableForLegalReason' => Response::HTTP_UNAVAILABLE_FOR_LEGAL_REASONS,
+        'internalServerError' => Response::HTTP_INTERNAL_SERVER_ERROR,
+        'notImplemented' => Response::HTTP_NOT_IMPLEMENTED,
+        'badGateway' => Response::HTTP_BAD_GATEWAY,
+        'serviceUnavailable' => Response::HTTP_SERVICE_UNAVAILABLE,
+        'gatewayTimeout' => Response::HTTP_GATEWAY_TIMEOUT,
+        'versionNotSupported' => Response::HTTP_VERSION_NOT_SUPPORTED,
+        'variantAlsoNegotiatesExperimental' => Response::HTTP_VARIANT_ALSO_NEGOTIATES_EXPERIMENTAL,
+        'insufficientStorage' => Response::HTTP_INSUFFICIENT_STORAGE,
+        'loopDetected' => Response::HTTP_LOOP_DETECTED,
+        'notExtended' => Response::HTTP_NOT_EXTENDED,
+        'networkAuthenticationRequired' => Response::HTTP_NETWORK_AUTHENTICATION_REQUIRED
+    ];
+
     /** @var int|string|null */
     protected $idx;
 
@@ -244,19 +310,13 @@ class JSONApiError implements ErrorInterface
         $newObject = new $this;
 
         $title = ($title) ? $title : $message;
-        $code = (in_array($errorName, self::ERRORS)) ? self::ERRORS[$errorName] : self::ERRORS['ok'];
+        $code = (array_key_exists($errorName, self::ERRORS)) ? self::ERRORS[$errorName] : self::ERRORS['ok'];
 
-        $this->setCode($code);
-        $this->setTitle($title);
-        $this->setDetail($message);
-        $this->setSource($source);
+        $newObject->setCode($code);
+        $newObject->setTitle($title);
+        $newObject->setDetail($message);
+        $newObject->setSource($source);
 
         return $newObject;
     }
-
-    const ERRORS = [
-            'ok' => Response::HTTP_OK,
-            'forbiden' => Response::HTTP_FORBIDDEN,
-            'badRequest' => Response::HTTP_BAD_REQUEST
-        ];
 }
