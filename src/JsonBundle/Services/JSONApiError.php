@@ -257,47 +257,6 @@ class JSONApiError implements ErrorInterface
     }
 
     /**
-     * @param string $message
-     * @param array $source
-     * @return $this
-     */
-    public function getBadRequestError($message, array $source, $title = null)
-    {
-        /** @var JSONApiError $newObject */
-        $newObject = new $this;
-
-        $title = ($title) ? $title : $message;
-
-        $newObject->setCode(Response::HTTP_BAD_REQUEST);
-        $newObject->setTitle($title);
-        $newObject->setDetail($message);
-        $newObject->setSource($source);
-
-        return $newObject;
-    }
-
-    /**
-     * @param string $message
-     * @param array $source
-     * @param string $title
-     * @return object
-     */
-    public function getForbiddenError($message, array $source, $title = null)
-    {
-        /** @var JSONApiError $newObject */
-        $newObject = new $this;
-
-        $title = ($title) ? $title : $message;
-
-        $this->setCode(Response::HTTP_FORBIDDEN);
-        $this->setTitle($title);
-        $this->setDetail($message);
-        $this->setSource($source);
-
-        return $newObject;
-    }
-
-    /**
      * @param string $errorName
      * @param string $message
      * @param array $source
