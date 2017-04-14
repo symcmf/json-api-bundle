@@ -184,16 +184,6 @@ abstract class BaseController extends Controller
     {
         $errorEncoder = $this->checkIdField($this->getJsonRequest()->getDataSection());
 
-        /** @var Validator $validator */
-        $validator = $this->get('jsonapi.validator');
-        /** @var \JsonBundle\Request\JSONApiRequest $jsonApiRequest */
-        $jsonApiRequest =  $this->get('jsonapi.request');
-        $validator->validate(
-            $jsonApiRequest->getDataAttributes(),
-            $jsonApiRequest->getRelationSection(),
-            $jsonApiRequest->getClassNameByType($jsonApiRequest->getType())
-        );
-
         // if catch error
         if ($errorEncoder) {
             return $this->createResponse($errorEncoder, Response::HTTP_FORBIDDEN);
